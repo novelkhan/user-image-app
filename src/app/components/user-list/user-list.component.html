@@ -1,0 +1,20 @@
+<div class="container mt-4">
+  <h4>All Users</h4>
+  <div class="row" *ngFor="let user of users">
+    <div class="col-md-12">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5>{{ user.name }} <small class="text-muted">({{ user.email }})</small></h5>
+          <div class="d-flex flex-wrap">
+            <img *ngFor="let photo of user.photos"
+                 [src]="service.baseUrl + '/' + photo.url"
+                 class="img-thumbnail me-2 mb-2"
+                 width="100" />
+          </div>
+          <a [routerLink]="['/edit', user.id]" class="btn btn-sm btn-primary me-2">Edit</a>
+          <button (click)="deleteUser(user.id)" class="btn btn-sm btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

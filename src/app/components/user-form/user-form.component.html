@@ -1,0 +1,33 @@
+<div class="container mt-4">
+  <h4>{{ editing ? 'Edit' : 'Add New' }} User</h4>
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label>Name</label>
+      <input formControlName="name" class="form-control" required />
+    </div>
+    <div class="mb-3">
+      <label>Email</label>
+      <input formControlName="email" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+      <label>Photos</label>
+      <input type="file" (change)="onFileChange($event)" multiple class="form-control" />
+    </div>
+
+    <div class="row">
+      <div class="col-md-3" *ngFor="let preview of previews; let i = index">
+        <div class="card mb-3">
+          <img [src]="preview" class="card-img-top" style="height: 150px; object-fit: cover" />
+          <div class="card-body text-center">
+            <button type="button" class="btn btn-danger btn-sm" (click)="removeImage(i)">Remove</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary mt-2" type="submit">
+      {{ editing ? 'Update' : 'Submit' }}
+    </button>
+  </form>
+</div>
