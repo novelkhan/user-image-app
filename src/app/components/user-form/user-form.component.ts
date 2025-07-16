@@ -12,8 +12,10 @@ export class UserFormComponent implements OnInit {
   userForm: FormGroup;
   images: File[] = [];
   previews: string[] = [];
+  removedImages: string[] = [];
   editing: boolean = false;
   userId: number = 0;
+  existingImages: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -29,11 +31,16 @@ export class UserFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.userId = +this.route.snapshot.paramMap.get('id')!;
-    if (this.userId) {
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
       this.editing = true;
+      this.userId = +idParam;
       this.service.getUserById(this.userId).subscribe((user) => {
-        this.userForm.patchValue(user);
+        this.userForm.patchValue({
+          name: user.name,
+          email: user.email,
+        });
+        this.existingImages = user.photos.map((p: any) => p.url);
         this.previews = user.photos.map((p: any) => this.service.baseUrl + '/' + p.url);
       });
     }
@@ -50,7 +57,13 @@ export class UserFormComponent implements OnInit {
   }
 
   removeImage(index: number) {
-    this.images.splice(index, 1);
+    if (index < this.existingImages.length) {
+      const removed = this.existingImages.splice(index, 1)[0];
+      this.removedImages.push(removed);
+    } else {
+      const newImageIndex = index - this.existingImages.length;
+      this.images.splice(newImageIndex, 1);
+    }
     this.previews.splice(index, 1);
   }
 
@@ -58,16 +71,23 @@ export class UserFormComponent implements OnInit {
     const formData = new FormData();
     formData.append('name', this.userForm.value.name);
     formData.append('email', this.userForm.value.email);
-    this.images.forEach((img) => formData.append('photos', img));
+
+    this.images.forEach((img) => {
+      formData.append('photos', img);
+    });
 
     if (this.editing) {
-      this.service.updateUser(this.userId, this.userForm.value).subscribe(() => {
-        this.toastr.success('User updated');
+      this.removedImages.forEach((img) =>
+        formData.append('removedImages[]', img),
+      );
+
+      this.service.updateUser(this.userId, formData).subscribe(() => {
+        this.toastr.success('User updated successfully');
         this.router.navigate(['/']);
       });
     } else {
       this.service.createUser(formData).subscribe(() => {
-        this.toastr.success('User created');
+        this.toastr.success('User created successfully');
         this.router.navigate(['/']);
       });
     }
