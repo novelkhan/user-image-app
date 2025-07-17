@@ -42,16 +42,14 @@ export class UserListComponent implements OnInit {
 
   downloadFile(storedName: string, originalName: string) {
     const fileUrl = `${this.service.baseUrl}/${storedName}`;
-
     fetch(fileUrl)
       .then(response => response.blob())
       .then(blob => {
-        const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = originalName;
         a.click();
-        window.URL.revokeObjectURL(url);
+        URL.revokeObjectURL(a.href);
       })
       .catch(error => {
         console.error('Download error:', error);

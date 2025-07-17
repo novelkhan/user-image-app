@@ -8,29 +8,57 @@
             {{ user.name }}
             <small class="text-muted">({{ user.email }})</small>
           </h5>
-
           <div class="d-flex flex-wrap">
-            <div class="me-3 mb-3" *ngFor="let photo of user.photos">
-              <!-- Preview -->
-              <img *ngIf="isImage(photo.url)"
-                   [src]="service.baseUrl + '/' + photo.url"
-                   class="img-thumbnail"
-                   width="100" />
-
-              <iframe *ngIf="isPDF(photo.url)"
-                      [src]="service.baseUrl + '/' + photo.url"
-                      class="border"
-                      width="100" height="100"></iframe>
-
-              <div class="text-center mt-1">
-                <button class="btn btn-sm btn-outline-secondary"
-                        (click)="downloadFile(photo.url, photo.originalName)">
+            <div *ngFor="let photo of user.photos" class="me-3 mb-3 text-center">
+              <ng-container [ngSwitch]="getFileExtension(photo.originalName)">
+                <!-- Image Preview -->
+                <img
+                  *ngSwitchCase="'jpg'"
+                  [src]="service.baseUrl + '/' + photo.url"
+                  class="img-thumbnail"
+                  width="100"
+                />
+                <img
+                  *ngSwitchCase="'jpeg'"
+                  [src]="service.baseUrl + '/' + photo.url"
+                  class="img-thumbnail"
+                  width="100"
+                />
+                <img
+                  *ngSwitchCase="'png'"
+                  [src]="service.baseUrl + '/' + photo.url"
+                  class="img-thumbnail"
+                  width="100"
+                />
+                <img
+                  *ngSwitchCase="'webp'"
+                  [src]="service.baseUrl + '/' + photo.url"
+                  class="img-thumbnail"
+                  width="100"
+                />
+                <!-- PDF Preview -->
+                <iframe
+                  *ngSwitchCase="'pdf'"
+                  [src]="service.baseUrl + '/' + photo.url"
+                  width="100"
+                  height="100"
+                ></iframe>
+                <!-- No Preview -->
+                <div *ngSwitchDefault class="border d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                  <span class="text-muted">No preview</span>
+                </div>
+              </ng-container>
+              <div class="mt-1">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="downloadFile(photo.url, photo.originalName)"
+                >
                   Download
                 </button>
               </div>
+              <small class="d-block mt-1 text-break">{{ photo.originalName }}</small>
             </div>
           </div>
-
           <a [routerLink]="['/edit', user.id]" class="btn btn-sm btn-primary me-2">Edit</a>
           <button (click)="deleteUser(user.id)" class="btn btn-sm btn-danger">Delete</button>
         </div>
