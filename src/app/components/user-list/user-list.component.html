@@ -4,13 +4,33 @@
     <div class="col-md-12">
       <div class="card mb-3">
         <div class="card-body">
-          <h5>{{ user.name }} <small class="text-muted">({{ user.email }})</small></h5>
+          <h5>
+            {{ user.name }}
+            <small class="text-muted">({{ user.email }})</small>
+          </h5>
+
           <div class="d-flex flex-wrap">
-            <img *ngFor="let photo of user.photos"
-                 [src]="service.baseUrl + '/' + photo.url"
-                 class="img-thumbnail me-2 mb-2"
-                 width="100" />
+            <div class="me-3 mb-3" *ngFor="let photo of user.photos">
+              <!-- Preview -->
+              <img *ngIf="isImage(photo.url)"
+                   [src]="service.baseUrl + '/' + photo.url"
+                   class="img-thumbnail"
+                   width="100" />
+
+              <iframe *ngIf="isPDF(photo.url)"
+                      [src]="service.baseUrl + '/' + photo.url"
+                      class="border"
+                      width="100" height="100"></iframe>
+
+              <div class="text-center mt-1">
+                <button class="btn btn-sm btn-outline-secondary"
+                        (click)="downloadFile(photo.url, photo.originalName)">
+                  Download
+                </button>
+              </div>
+            </div>
           </div>
+
           <a [routerLink]="['/edit', user.id]" class="btn btn-sm btn-primary me-2">Edit</a>
           <button (click)="deleteUser(user.id)" class="btn btn-sm btn-danger">Delete</button>
         </div>

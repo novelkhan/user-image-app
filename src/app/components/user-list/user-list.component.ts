@@ -27,4 +27,35 @@ export class UserListComponent implements OnInit {
       });
     }
   }
+
+  getFileExtension(fileName: string): string {
+    return fileName.split('.').pop()?.toLowerCase() || '';
+  }
+
+  isImage(fileName: string): boolean {
+    return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(this.getFileExtension(fileName));
+  }
+
+  isPDF(fileName: string): boolean {
+    return this.getFileExtension(fileName) === 'pdf';
+  }
+
+  downloadFile(storedName: string, originalName: string) {
+    const fileUrl = `${this.service.baseUrl}/${storedName}`;
+
+    fetch(fileUrl)
+      .then(response => response.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = originalName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(error => {
+        console.error('Download error:', error);
+        alert('Failed to download file.');
+      });
+  }
 }
