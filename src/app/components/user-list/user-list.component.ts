@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { UserService } from 'src/app/services/user.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
+import { UserService } from 'src/app/services/user.service';
 
 @Component({
   selector: 'app-user-list',
@@ -9,14 +10,31 @@ import { ToastrService } from 'ngx-toastr';
 export class UserListComponent implements OnInit {
   users: any[] = [];
 
-  constructor(public service: UserService, private toastr: ToastrService) {}
+  constructor(
+    public service: UserService,
+    private toastr: ToastrService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
   }
 
-  loadUsers() {
-    this.service.getAllUsers().subscribe((res) => (this.users = res));
+  async loadUsers() {
+    this.service.getAllUsers().subscribe(async (res) => {
+      this.users = res;
+
+      for (const user of this.users) {
+        for (const photo of user.photos) {
+          const fileUrl = `${this.service.baseUrl}/${photo.url}`;
+          photo.fileSize = await this.getFileSize(fileUrl);
+
+          if (this.getFileExtension(photo.originalName) === 'pdf') {
+            photo.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+          }
+        }
+      }
+    });
   }
 
   deleteUser(id: number) {
@@ -32,26 +50,29 @@ export class UserListComponent implements OnInit {
     return fileName.split('.').pop()?.toLowerCase() || '';
   }
 
-  isImage(fileName: string): boolean {
-    return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(this.getFileExtension(fileName));
-  }
-
-  isPDF(fileName: string): boolean {
-    return this.getFileExtension(fileName) === 'pdf';
+  getFileSize(fileUrl: string): Promise<string> {
+    return fetch(fileUrl, { method: 'HEAD' })
+      .then((response) => {
+        const size = Number(response.headers.get('Content-Length'));
+        if (!size) return 'Unknown size';
+        const kb = size / 1024;
+        return kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : kb.toFixed(2) + ' KB';
+      })
+      .catch(() => 'Unknown size');
   }
 
   downloadFile(storedName: string, originalName: string) {
     const fileUrl = `${this.service.baseUrl}/${storedName}`;
     fetch(fileUrl)
-      .then(response => response.blob())
-      .then(blob => {
+      .then((response) => response.blob())
+      .then((blob) => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = originalName;
         a.click();
         URL.revokeObjectURL(a.href);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Download error:', error);
         alert('Failed to download file.');
       });
