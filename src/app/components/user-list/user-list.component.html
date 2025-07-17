@@ -1,80 +1,89 @@
 <div class="container mt-4">
   <h4>All Users</h4>
+
   <div class="row" *ngFor="let user of users">
     <div class="col-md-12">
-      <div class="card mb-3">
+      <div class="card mb-4 shadow-sm">
         <div class="card-body">
-          <h5>
+          <h5 class="mb-3">
             {{ user.name }}
             <small class="text-muted">({{ user.email }})</small>
           </h5>
-          <div class="d-flex flex-wrap">
-            <div *ngFor="let photo of user.photos" class="me-3 mb-3 text-center">
+
+          <div class="d-flex flex-wrap gap-3">
+            <div
+              *ngFor="let photo of user.photos"
+              class="border rounded p-2 text-center"
+              style="width: 130px; flex-shrink: 0;"
+            >
               <ng-container [ngSwitch]="getFileExtension(photo.originalName)">
                 <!-- Image Preview -->
                 <img
                   *ngSwitchCase="'jpg'"
                   [src]="service.baseUrl + '/' + photo.url"
-                  class="img-thumbnail"
-                  width="100"
+                  class="img-fluid rounded"
+                  style="height: 100px; object-fit: cover;"
                 />
                 <img
                   *ngSwitchCase="'jpeg'"
                   [src]="service.baseUrl + '/' + photo.url"
-                  class="img-thumbnail"
-                  width="100"
+                  class="img-fluid rounded"
+                  style="height: 100px; object-fit: cover;"
                 />
                 <img
                   *ngSwitchCase="'png'"
                   [src]="service.baseUrl + '/' + photo.url"
-                  class="img-thumbnail"
-                  width="100"
+                  class="img-fluid rounded"
+                  style="height: 100px; object-fit: cover;"
                 />
                 <img
                   *ngSwitchCase="'webp'"
                   [src]="service.baseUrl + '/' + photo.url"
-                  class="img-thumbnail"
-                  width="100"
+                  class="img-fluid rounded"
+                  style="height: 100px; object-fit: cover;"
                 />
-                <!-- PDF Preview -->
+
                 <!-- PDF Preview -->
                 <iframe
                   *ngSwitchCase="'pdf'"
                   [src]="photo.safeUrl"
-                  width="100"
-                  height="100"
-                  style="border: 1px solid #ccc;"
+                  style="width: 100%; height: 100px; border: none;"
                 ></iframe>
 
                 <!-- No Preview -->
                 <div
                   *ngSwitchDefault
-                  class="border d-flex align-items-center justify-content-center"
-                  style="width: 100px; height: 100px;"
+                  class="d-flex align-items-center justify-content-center bg-light"
+                  style="width: 100%; height: 100px;"
                 >
-                  <span class="text-muted">No preview</span>
+                  <small class="text-muted">No preview</small>
                 </div>
               </ng-container>
 
-              <div class="mt-1">
-                <button
-                  class="btn btn-sm btn-outline-primary"
-                  (click)="downloadFile(photo.url, photo.originalName)"
-                >
-                  Download
-                </button>
-              </div>
-
-              <!-- Original File Name -->
-              <small class="d-block mt-1 text-break">{{ photo.originalName }}</small>
+              <!-- File Name -->
+              <small class="d-block mt-2 text-break fw-semibold" style="font-size: 0.75rem;">
+                {{ photo.originalName }}
+              </small>
 
               <!-- File Size -->
-              <small class="d-block text-muted">{{ photo.fileSize }}</small>
+              <small class="text-muted" style="font-size: 0.7rem;">
+                {{ photo.fileSize }}
+              </small>
+
+              <!-- Download Button -->
+              <button
+                class="btn btn-sm btn-outline-primary mt-1"
+                (click)="downloadFile(photo.url, photo.originalName)"
+              >
+                Download
+              </button>
             </div>
           </div>
 
-          <a [routerLink]="['/edit', user.id]" class="btn btn-sm btn-primary me-2">Edit</a>
-          <button (click)="deleteUser(user.id)" class="btn btn-sm btn-danger">Delete</button>
+          <div class="mt-3">
+            <a [routerLink]="['/edit', user.id]" class="btn btn-sm btn-primary me-2">Edit</a>
+            <button (click)="deleteUser(user.id)" class="btn btn-sm btn-danger">Delete</button>
+          </div>
         </div>
       </div>
     </div>
