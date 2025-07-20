@@ -39,37 +39,38 @@ export class UserFormComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.editing = true;
       this.userId = +idParam;
-      this.service.getUserById(this.userId).subscribe((user) => {
+
+      this.service.getUserById(this.userId).subscribe(async (user) => {
         this.userForm.patchValue({
           name: user.name,
           email: user.email,
         });
 
-        user.photos.forEach((p: any) => {
+        for (const p of user.photos) {
           const fullUrl = this.service.baseUrl + '/' + p.url;
           this.existingImages.push(p.url);
           this.previews.push(fullUrl);
 
-          // Add file metadata for existing file
           const extension = p.originalName.split('.').pop() || '';
-          this.getFileMetaFromUrl(fullUrl).then((meta) => {
-            this.fileMetas.push({
-              name: p.originalName,
-              type: meta.type,
-              size: meta.size,
-              extension: extension,
-              isExisting: true,
-            });
+          const meta = await this.getFileMetaFromUrl(fullUrl);
+
+          this.fileMetas.push({
+            name: p.originalName,
+            type: meta.type,
+            size: meta.size,
+            extension: extension,
+            isExisting: true,
           });
-        });
+        }
       });
     }
   }
+
 
   onFileChange(event: any) {
     const files = event.target.files;
