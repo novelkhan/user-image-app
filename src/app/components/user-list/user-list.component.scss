@@ -84,6 +84,7 @@
   height: 100%;
   border: none;
   animation: fadeInContent 0.8s ease;
+  pointer-events: auto; // এখানে যেন কাজ করে
 }
 
 @keyframes fadeInContent {
