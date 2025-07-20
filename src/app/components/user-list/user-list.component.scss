@@ -8,7 +8,7 @@
   background-color: rgba(0, 0, 0, 0.9);
   z-index: 1050;
   opacity: 0;
-  animation: fadeIn 0.3s ease forwards;
+  animation: fadeIn 0.8s ease forwards;
 }
 
 @keyframes fadeIn {
@@ -19,7 +19,7 @@
 /* Preview Container Styles */
 .preview-container {
   position: fixed;
-  transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   overflow: hidden;
   background: white;
   border-radius: 4px;
@@ -75,6 +75,7 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  animation: fadeInContent 0.8s ease;
 }
 
 /* PDF Preview Styles */
@@ -82,14 +83,35 @@
   width: 100%;
   height: 100%;
   border: none;
+  animation: fadeInContent 0.8s ease;
+}
+
+@keyframes fadeInContent {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 /* Animation for closing */
 .preview-overlay.closing {
-  animation: fadeOut 0.3s ease forwards;
+  animation: fadeOut 0.8s ease forwards;
 }
 
 @keyframes fadeOut {
   from { opacity: 1; }
   to { opacity: 0; }
+}
+
+.preview-container.closing {
+  animation: zoomOut 0.8s ease forwards;
+}
+
+@keyframes zoomOut {
+  from { 
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  to { 
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
 }

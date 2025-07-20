@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
 import { UserService } from 'src/app/services/user.service';
@@ -8,11 +8,12 @@ import { UserService } from 'src/app/services/user.service';
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss']
 })
-export class UserListComponent implements OnInit, AfterViewInit {
+export class UserListComponent implements OnInit {
   users: any[] = [];
   showPreviewModal: boolean = false;
   currentPreview: any = null;
   clickedElementPosition: DOMRect | null = null;
+  isAnimating: boolean = false;
 
   constructor(
     public service: UserService,
@@ -22,10 +23,6 @@ export class UserListComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadUsers();
-  }
-
-  ngAfterViewInit() {
-    // অ্যানিমেশন ট্রিগার করার জন্য
   }
 
   async loadUsers() {
@@ -49,28 +46,22 @@ export class UserListComponent implements OnInit, AfterViewInit {
     const clickedElement = event.currentTarget as HTMLElement;
     this.clickedElementPosition = clickedElement.getBoundingClientRect();
     this.currentPreview = photo;
+    this.isAnimating = true;
     this.showPreviewModal = true;
-
-    // অ্যানিমেশন ট্রিগার
+    
     setTimeout(() => {
-      const container = document.querySelector('.preview-container');
-      if (container) {
-        container.classList.add('animate');
-      }
-    }, 10);
+      this.isAnimating = false;
+    }, 800); // অ্যানিমেশন শেষ হওয়ার পর ফ্ল্যাগ রিসেট
   }
 
   closePreview() {
-    const container = document.querySelector('.preview-container');
-    if (container) {
-      container.classList.remove('animate');
-    }
-    
+    this.isAnimating = true;
     setTimeout(() => {
       this.showPreviewModal = false;
       this.currentPreview = null;
       this.clickedElementPosition = null;
-    }, 500); // অ্যানিমেশন শেষ হওয়া পর্যন্ত অপেক্ষা
+      this.isAnimating = false;
+    }, 800); // অ্যানিমেশন শেষ হওয়া পর্যন্ত অপেক্ষা
   }
 
   deleteUser(id: number) {
