@@ -9,6 +9,7 @@ interface FileMeta {
   type: string;
   size: string;
   extension: string;
+  isExisting: boolean;
 }
 
 @Component({
@@ -48,8 +49,24 @@ export class UserFormComponent implements OnInit {
           name: user.name,
           email: user.email,
         });
-        this.existingImages = user.photos.map((p: any) => p.url);
-        this.previews = user.photos.map((p: any) => this.service.baseUrl + '/' + p.url);
+
+        user.photos.forEach((p: any) => {
+          const fullUrl = this.service.baseUrl + '/' + p.url;
+          this.existingImages.push(p.url);
+          this.previews.push(fullUrl);
+
+          // Add file metadata for existing file
+          const extension = p.originalName.split('.').pop() || '';
+          this.getFileMetaFromUrl(fullUrl).then((meta) => {
+            this.fileMetas.push({
+              name: p.originalName,
+              type: meta.type,
+              size: meta.size,
+              extension: extension,
+              isExisting: true,
+            });
+          });
+        });
       });
     }
   }
@@ -65,7 +82,6 @@ export class UserFormComponent implements OnInit {
       };
       reader.readAsDataURL(file);
 
-      // Add file metadata
       const extension = file.name.split('.').pop() || '';
       const sizeKB = (file.size / 1024).toFixed(2);
       this.fileMetas.push({
@@ -73,6 +89,7 @@ export class UserFormComponent implements OnInit {
         type: file.type,
         size: `${sizeKB} KB`,
         extension,
+        isExisting: false,
       });
     }
   }
@@ -84,9 +101,26 @@ export class UserFormComponent implements OnInit {
     } else {
       const newImageIndex = index - this.existingImages.length;
       this.images.splice(newImageIndex, 1);
-      this.fileMetas.splice(newImageIndex, 1);
     }
     this.previews.splice(index, 1);
+    this.fileMetas.splice(index, 1);
+  }
+
+  async getFileMetaFromUrl(url: string): Promise<{ size: string; type: string }> {
+    try {
+      const res = await fetch(url, { method: 'HEAD' });
+      const size = Number(res.headers.get('Content-Length'));
+      const type = res.headers.get('Content-Type') || 'unknown';
+      const sizeFormatted = size
+        ? size / 1024 > 1024
+          ? (size / 1024 / 1024).toFixed(2) + ' MB'
+          : (size / 1024).toFixed(2) + ' KB'
+        : 'Unknown';
+
+      return { size: sizeFormatted, type };
+    } catch {
+      return { size: 'Unknown', type: 'Unknown' };
+    }
   }
 
   onSubmit() {
