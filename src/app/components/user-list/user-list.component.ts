@@ -45,14 +45,22 @@ export class UserListComponent implements OnInit {
   openPreview(event: MouseEvent, photo: any) {
     const clickedElement = event.currentTarget as HTMLElement;
     this.clickedElementPosition = clickedElement.getBoundingClientRect();
-    this.currentPreview = photo;
+    this.currentPreview = { ...photo }; // shallow copy
+
+    const ext = this.getFileExtension(photo.originalName);
+    if (ext === 'pdf') {
+      const fileUrl = `${this.service.baseUrl}/${photo.url}#zoom=100`; // 👉 zoom=100
+      this.currentPreview.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+    }
+
     this.isAnimating = true;
     this.showPreviewModal = true;
-    
+
     setTimeout(() => {
       this.isAnimating = false;
-    }, 800); // অ্যানিমেশন শেষ হওয়ার পর ফ্ল্যাগ রিসেট
+    }, 800);
   }
+
 
   closePreview() {
     this.isAnimating = true;
