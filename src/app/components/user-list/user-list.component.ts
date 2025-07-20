@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
 import { UserService } from 'src/app/services/user.service';
@@ -6,9 +6,13 @@ import { UserService } from 'src/app/services/user.service';
 @Component({
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',
+  styleUrls: ['./user-list.component.scss']
 })
-export class UserListComponent implements OnInit {
+export class UserListComponent implements OnInit, AfterViewInit {
   users: any[] = [];
+  showPreviewModal: boolean = false;
+  currentPreview: any = null;
+  clickedElementPosition: DOMRect | null = null;
 
   constructor(
     public service: UserService,
@@ -18,6 +22,10 @@ export class UserListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUsers();
+  }
+
+  ngAfterViewInit() {
+    // অ্যানিমেশন ট্রিগার করার জন্য
   }
 
   async loadUsers() {
@@ -35,6 +43,34 @@ export class UserListComponent implements OnInit {
         }
       }
     });
+  }
+
+  openPreview(event: MouseEvent, photo: any) {
+    const clickedElement = event.currentTarget as HTMLElement;
+    this.clickedElementPosition = clickedElement.getBoundingClientRect();
+    this.currentPreview = photo;
+    this.showPreviewModal = true;
+
+    // অ্যানিমেশন ট্রিগার
+    setTimeout(() => {
+      const container = document.querySelector('.preview-container');
+      if (container) {
+        container.classList.add('animate');
+      }
+    }, 10);
+  }
+
+  closePreview() {
+    const container = document.querySelector('.preview-container');
+    if (container) {
+      container.classList.remove('animate');
+    }
+    
+    setTimeout(() => {
+      this.showPreviewModal = false;
+      this.currentPreview = null;
+      this.clickedElementPosition = null;
+    }, 500); // অ্যানিমেশন শেষ হওয়া পর্যন্ত অপেক্ষা
   }
 
   deleteUser(id: number) {
