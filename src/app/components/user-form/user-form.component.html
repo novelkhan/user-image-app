@@ -18,9 +18,15 @@
     <div class="row">
       <div class="col-md-3" *ngFor="let preview of previews; let i = index">
         <div class="card mb-3">
-          <img [src]="preview" class="card-img-top" style="height: 150px; object-fit: cover" />
-          <div class="card-body text-center">
-            <button type="button" class="btn btn-danger btn-sm" (click)="removeImage(i)">Remove</button>
+          <img [src]="preview" class="card-img-top" style="height: 150px; object-fit: cover" *ngIf="preview" />
+          <div class="card-body">
+            <p class="mb-1" *ngIf="fileMetas[i]"><strong>Name:</strong> {{ fileMetas[i].name }}</p>
+            <p class="mb-1" *ngIf="fileMetas[i]"><strong>Type:</strong> {{ fileMetas[i].type }}</p>
+            <p class="mb-1" *ngIf="fileMetas[i]"><strong>Size:</strong> {{ fileMetas[i].size }}</p>
+            <p class="mb-1" *ngIf="fileMetas[i]"><strong>Extension:</strong> {{ fileMetas[i].extension }}</p>
+            <div class="text-center mt-2">
+              <button type="button" class="btn btn-danger btn-sm" (click)="removeImage(i)">Remove</button>
+            </div>
           </div>
         </div>
       </div>

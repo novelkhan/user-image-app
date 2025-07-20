@@ -4,6 +4,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from 'src/app/services/user.service';
 import { ToastrService } from 'ngx-toastr';
 
+interface FileMeta {
+  name: string;
+  type: string;
+  size: string;
+  extension: string;
+}
+
 @Component({
   selector: 'app-user-form',
   templateUrl: './user-form.component.html',
@@ -16,6 +23,7 @@ export class UserFormComponent implements OnInit {
   editing: boolean = false;
   userId: number = 0;
   existingImages: string[] = [];
+  fileMetas: FileMeta[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -50,9 +58,22 @@ export class UserFormComponent implements OnInit {
     const files = event.target.files;
     for (let file of files) {
       this.images.push(file);
+
       const reader = new FileReader();
-      reader.onload = (e: any) => this.previews.push(e.target.result);
+      reader.onload = (e: any) => {
+        this.previews.push(e.target.result);
+      };
       reader.readAsDataURL(file);
+
+      // Add file metadata
+      const extension = file.name.split('.').pop() || '';
+      const sizeKB = (file.size / 1024).toFixed(2);
+      this.fileMetas.push({
+        name: file.name,
+        type: file.type,
+        size: `${sizeKB} KB`,
+        extension,
+      });
     }
   }
 
@@ -63,6 +84,7 @@ export class UserFormComponent implements OnInit {
     } else {
       const newImageIndex = index - this.existingImages.length;
       this.images.splice(newImageIndex, 1);
+      this.fileMetas.splice(newImageIndex, 1);
     }
     this.previews.splice(index, 1);
   }
