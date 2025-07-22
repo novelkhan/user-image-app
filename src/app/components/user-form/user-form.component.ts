@@ -58,11 +58,13 @@ export class UserFormComponent implements OnInit {
 
   onFileChange(event: any) {
     const files = Array.from(event.target.files) as File[];
-    this.newFiles = files.map(file => ({
+    // নতুন ফাইলগুলো আগের ফাইলের সাথে যোগ করা
+    const newFilesToAdd = files.map(file => ({
       file,
       name: file.name,
       safeUrl: this.getSafeUrl(file)
     }));
+    this.newFiles = [...this.newFiles, ...newFilesToAdd];
   }
 
   getSafeUrl(file: File): SafeResourceUrl {
