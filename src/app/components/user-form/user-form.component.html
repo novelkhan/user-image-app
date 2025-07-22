@@ -57,49 +57,52 @@
           class="border rounded p-2 text-center"
           style="width: 170px; flex-shrink: 0;"
         >
-          <ng-container [ngSwitch]="getFileExtension(file.originalName)">
-            <!-- Image Preview -->
-            <img
-              *ngSwitchCase="'jpg'"
-              [src]="file.safeUrl"
-              class="img-fluid rounded"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            />
-            <img
-              *ngSwitchCase="'jpeg'"
-              [src]="file.safeUrl"
-              class="img-fluid rounded"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            />
-            <img
-              *ngSwitchCase="'png'"
-              [src]="file.safeUrl"
-              class="img-fluid rounded"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            />
-            <img
-              *ngSwitchCase="'webp'"
-              [src]="file.safeUrl"
-              class="img-fluid rounded"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            />
+          <div (click)="openPreview($event, file)" style="cursor: pointer;">
+            <ng-container [ngSwitch]="getFileExtension(file.originalName)">
+              <!-- Image Preview -->
+              <img
+                *ngSwitchCase="'jpg'"
+                [src]="file.safeUrl"
+                class="img-fluid rounded"
+                style="width: 150px; height: 150px; object-fit: cover;"
+              />
+              <img
+                *ngSwitchCase="'jpeg'"
+                [src]="file.safeUrl"
+                class="img-fluid rounded"
+                style="width: 150px; height: 150px; object-fit: cover;"
+              />
+              <img
+                *ngSwitchCase="'png'"
+                [src]="file.safeUrl"
+                class="img-fluid rounded"
+                style="width: 150px; height: 150px; object-fit: cover;"
+              />
+              <img
+                *ngSwitchCase="'webp'"
+                [src]="file.safeUrl"
+                class="img-fluid rounded"
+                style="width: 150px; height: 150px; object-fit: cover;"
+              />
 
-            <!-- PDF Preview -->
-            <iframe
-              *ngSwitchCase="'pdf'"
-              [attr.src]="file.safeUrl"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            ></iframe>
+              <!-- PDF Preview -->
+              <iframe
+                *ngSwitchCase="'pdf'"
+                [attr.src]="file.safeUrl"
+                style="width: 150px; height: 150px; border: none;"
+                allow="fullscreen"
+              ></iframe>
 
-            <!-- No Preview -->
-            <div
-              *ngSwitchDefault
-              class="d-flex align-items-center justify-content-center bg-light"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            >
-              <small class="text-muted">No preview</small>
-            </div>
-          </ng-container>
+              <!-- No Preview -->
+              <div
+                *ngSwitchDefault
+                class="d-flex align-items-center justify-content-center bg-light"
+                style="width: 150px; height: 150px;"
+              >
+                <small class="text-muted">No preview</small>
+              </div>
+            </ng-container>
+          </div>
 
           <small class="d-block mt-2 text-break fw-semibold" style="font-size: 0.75rem;">
             {{ file.originalName }}
@@ -108,7 +111,7 @@
           <button
             type="button"
             class="btn btn-sm btn-outline-danger mt-1"
-            (click)="removeExistingImage(i)"
+            (click)="removeExistingImage(i); $event.stopPropagation()"
           >
             Remove
           </button>
@@ -125,50 +128,52 @@
           class="border rounded p-2 text-center"
           style="width: 170px; flex-shrink: 0;"
         >
-          <ng-container [ngSwitch]="getFileExtension(file.name)">
-            <!-- Image Preview -->
-            <img
-              *ngSwitchCase="'jpg'"
-              [src]="file.safeUrl"
-              class="img-fluid rounded"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            />
-            <img
-              *ngSwitchCase="'jpeg'"
-              [src]="file.safeUrl"
-              class="img-fluid rounded"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            />
-            <img
-              *ngSwitchCase="'png'"
-              [src]="file.safeUrl"
-              class="img-fluid rounded"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            />
-            <img
-              *ngSwitchCase="'webp'"
-              [src]="file.safeUrl"
-              class="img-fluid rounded"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            />
+          <div (click)="openPreview($event, file)" style="cursor: pointer;">
+            <ng-container [ngSwitch]="getFileExtension(file.name)">
+              <!-- Image Preview -->
+              <img
+                *ngSwitchCase="'jpg'"
+                [src]="file.safeUrl"
+                class="img-fluid rounded"
+                style="width: 150px; height: 150px; object-fit: cover;"
+              />
+              <img
+                *ngSwitchCase="'jpeg'"
+                [src]="file.safeUrl"
+                class="img-fluid rounded"
+                style="width: 150px; height: 150px; object-fit: cover;"
+              />
+              <img
+                *ngSwitchCase="'png'"
+                [src]="file.safeUrl"
+                class="img-fluid rounded"
+                style="width: 150px; height: 150px; object-fit: cover;"
+              />
+              <img
+                *ngSwitchCase="'webp'"
+                [src]="file.safeUrl"
+                class="img-fluid rounded"
+                style="width: 150px; height: 150px; object-fit: cover;"
+              />
 
-            <!-- PDF Preview -->
-            <iframe
-              *ngSwitchCase="'pdf'"
-              [attr.src]="file.safeUrl"
-              style="height: 150px; border: none; width: 150px;"
-              allow="fullscreen"
-            ></iframe>
+              <!-- PDF Preview -->
+              <iframe
+                *ngSwitchCase="'pdf'"
+                [attr.src]="file.safeUrl"
+                style="width: 150px; height: 150px; border: none;"
+                allow="fullscreen"
+              ></iframe>
 
-            <!-- No Preview -->
-            <div
-              *ngSwitchDefault
-              class="d-flex align-items-center justify-content-center bg-light"
-              style="height: 150px; width: 150px; object-fit: cover;"
-            >
-              <small class="text-muted">No preview</small>
-            </div>
-          </ng-container>
+              <!-- No Preview -->
+              <div
+                *ngSwitchDefault
+                class="d-flex align-items-center justify-content-center bg-light"
+                style="width: 150px; height: 150px;"
+              >
+                <small class="text-muted">No preview</small>
+              </div>
+            </ng-container>
+          </div>
 
           <small class="d-block mt-2 text-break fw-semibold" style="font-size: 0.75rem;">
             {{ file.name }}
@@ -177,7 +182,7 @@
           <button
             type="button"
             class="btn btn-sm btn-outline-danger mt-1"
-            (click)="removeNewImage(i)"
+            (click)="removeNewImage(i); $event.stopPropagation()"
           >
             Remove
           </button>
@@ -185,8 +190,65 @@
       </div>
     </div>
 
+    <!-- Floating Preview Modal -->
+    <div *ngIf="showPreviewModal" class="preview-overlay" (click)="closePreview($event)">
+      <div 
+        class="preview-container"
+        [class.animate]="!isAnimating"
+        [style.left.px]="clickedElementPosition?.left"
+        [style.top.px]="clickedElementPosition?.top"
+        [style.width.px]="clickedElementPosition?.width"
+        [style.height.px]="clickedElementPosition?.height"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="preview-content">
+          <button class="close-btn" (click)="closePreview($event)">×</button>
+          
+          <ng-container [ngSwitch]="getFileExtension(currentPreview?.name || currentPreview?.originalName)">
+            <!-- Image Preview -->
+            <img
+              *ngSwitchCase="'jpg'"
+              [src]="currentPreview?.safeUrl"
+              class="img-fluid"
+            />
+            <img
+              *ngSwitchCase="'jpeg'"
+              [src]="currentPreview?.safeUrl"
+              class="img-fluid"
+            />
+            <img
+              *ngSwitchCase="'png'"
+              [src]="currentPreview?.safeUrl"
+              class="img-fluid"
+            />
+            <img
+              *ngSwitchCase="'webp'"
+              [src]="currentPreview?.safeUrl"
+              class="img-fluid"
+            />
+
+            <!-- PDF Preview -->
+            <iframe
+              *ngSwitchCase="'pdf'"
+              [attr.src]="currentPreview?.safeUrl"
+              class="pdf-preview"
+              allow="fullscreen"
+            ></iframe>
+
+            <!-- No Preview -->
+            <div
+              *ngSwitchDefault
+              class="d-flex align-items-center justify-content-center bg-light h-100"
+            >
+              <h5 class="text-muted">No preview available</h5>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
     <!-- Submit Button -->
-    <div class="col-md-12 mb-5">
+    <div class="col-md-12">
       <button type="submit" class="btn btn-primary">
         {{ isEdit ? 'Update' : 'Create' }}
       </button>

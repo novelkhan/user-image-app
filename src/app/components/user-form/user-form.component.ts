@@ -17,6 +17,10 @@ export class UserFormComponent implements OnInit {
   existingFiles: any[] = [];
   newFiles: any[] = [];
   removedImages: string[] = [];
+  showPreviewModal: boolean = false;
+  currentPreview: any = null;
+  clickedElementPosition: DOMRect | null = null;
+  isAnimating: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -58,7 +62,6 @@ export class UserFormComponent implements OnInit {
 
   onFileChange(event: any) {
     const files = Array.from(event.target.files) as File[];
-    // নতুন ফাইলগুলো আগের ফাইলের সাথে যোগ করা
     const newFilesToAdd = files.map(file => ({
       file,
       name: file.name,
@@ -70,7 +73,7 @@ export class UserFormComponent implements OnInit {
   getSafeUrl(file: File): SafeResourceUrl {
     const ext = this.getFileExtension(file.name);
     if (ext === 'pdf') {
-      return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
+      return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file) + '#zoom=50');
     }
     return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
   }
@@ -79,12 +82,45 @@ export class UserFormComponent implements OnInit {
     const ext = this.getFileExtension(photo.originalName);
     if (ext === 'pdf') {
       return this.sanitizer.bypassSecurityTrustResourceUrl(
-        `${this.service.baseUrl}/users/preview/${photo.id}`
+        `${this.service.baseUrl}/users/preview/${photo.id}#zoom=50`
       );
     }
     return this.sanitizer.bypassSecurityTrustResourceUrl(
       `${this.service.baseUrl}/users/preview/${photo.id}`
     );
+  }
+
+  openPreview(event: MouseEvent, file: any) {
+    event.stopPropagation(); // ফর্ম সাবমিশন প্রতিরোধ করতে
+    const clickedElement = event.currentTarget as HTMLElement;
+    this.clickedElementPosition = clickedElement.getBoundingClientRect();
+    this.currentPreview = { ...file };
+
+    const ext = this.getFileExtension(file.name || file.originalName);
+    if (ext === 'pdf') {
+      const fileUrl = file.file
+        ? URL.createObjectURL(file.file) + '#zoom=100'
+        : `${this.service.baseUrl}/users/preview/${file.id}#zoom=100`;
+      this.currentPreview.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+    }
+
+    this.isAnimating = true;
+    this.showPreviewModal = true;
+
+    setTimeout(() => {
+      this.isAnimating = false;
+    }, 800);
+  }
+
+  closePreview(event?: MouseEvent) {
+    if (event) event.stopPropagation(); // ফর্ম সাবমিশন প্রতিরোধ করতে
+    this.isAnimating = true;
+    setTimeout(() => {
+      this.showPreviewModal = false;
+      this.currentPreview = null;
+      this.clickedElementPosition = null;
+      this.isAnimating = false;
+    }, 800);
   }
 
   removeExistingImage(index: number) {
