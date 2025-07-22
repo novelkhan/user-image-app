@@ -1,30 +1,22 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UserService } from 'src/app/services/user.service';
 import { ToastrService } from 'ngx-toastr';
-
-interface FileMeta {
-  name: string;
-  type: string;
-  size: string;
-  extension: string;
-  isExisting: boolean;
-}
+import { UserService } from 'src/app/services/user.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-user-form',
   templateUrl: './user-form.component.html',
+  styleUrls: ['./user-form.component.scss']
 })
 export class UserFormComponent implements OnInit {
-  userForm: FormGroup;
-  images: File[] = [];
-  previews: string[] = [];
+  userForm!: FormGroup;
+  isEdit: boolean = false;
+  userId: number | null = null;
+  existingFiles: any[] = [];
+  newFiles: any[] = [];
   removedImages: string[] = [];
-  editing: boolean = false;
-  userId: number = 0;
-  existingImages: string[] = [];
-  fileMetas: FileMeta[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -32,121 +24,121 @@ export class UserFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private toastr: ToastrService,
-  ) {
+    private sanitizer: DomSanitizer
+  ) {}
+
+  ngOnInit(): void {
     this.userForm = this.fb.group({
-      name: [''],
-      email: [''],
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      photos: [null]
+    });
+
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.isEdit = true;
+        this.userId = +params['id'];
+        this.loadUser(this.userId);
+      }
     });
   }
 
-  async ngOnInit(): Promise<void> {
-    const idParam = this.route.snapshot.paramMap.get('id');
-    if (idParam) {
-      this.editing = true;
-      this.userId = +idParam;
+  loadUser(id: number) {
+    this.service.getUserById(id).subscribe(user => {
+      this.userForm.patchValue({
+        name: user.name,
+        email: user.email
+      });
+      this.existingFiles = user.photos.map((photo: any) => ({
+        ...photo,
+        safeUrl: this.getPreviewUrl(photo)
+      }));
+    });
+  }
 
-      this.service.getUserById(this.userId).subscribe(async (user) => {
-        this.userForm.patchValue({
-          name: user.name,
-          email: user.email,
-        });
+  onFileChange(event: any) {
+    const files = Array.from(event.target.files) as File[];
+    this.newFiles = files.map(file => ({
+      file,
+      name: file.name,
+      safeUrl: this.getSafeUrl(file)
+    }));
+  }
 
-        for (const p of user.photos) {
-          const fullUrl = this.service.baseUrl + '/' + p.url;
-          this.existingImages.push(p.url);
-          this.previews.push(fullUrl);
+  getSafeUrl(file: File): SafeResourceUrl {
+    const ext = this.getFileExtension(file.name);
+    if (ext === 'pdf') {
+      return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
+    }
+    return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
+  }
 
-          const extension = p.originalName.split('.').pop() || '';
-          const meta = await this.getFileMetaFromUrl(fullUrl);
+  getPreviewUrl(photo: any): SafeResourceUrl {
+    const ext = this.getFileExtension(photo.originalName);
+    if (ext === 'pdf') {
+      return this.sanitizer.bypassSecurityTrustResourceUrl(
+        `${this.service.baseUrl}/users/preview/${photo.id}`
+      );
+    }
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      `${this.service.baseUrl}/users/preview/${photo.id}`
+    );
+  }
 
-          this.fileMetas.push({
-            name: p.originalName,
-            type: meta.type,
-            size: meta.size,
-            extension: extension,
-            isExisting: true,
-          });
+  removeExistingImage(index: number) {
+    const image = this.existingFiles[index];
+    this.removedImages.push(image.id);
+    this.existingFiles.splice(index, 1);
+  }
+
+  removeNewImage(index: number) {
+    this.newFiles.splice(index, 1);
+  }
+
+  onSubmit() {
+    if (this.userForm.invalid) {
+      this.toastr.error('Please fill all required fields');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('name', this.userForm.get('name')?.value);
+    formData.append('email', this.userForm.get('email')?.value);
+
+    for (const file of this.newFiles) {
+      formData.append('photos', file.file);
+    }
+
+    for (const id of this.removedImages) {
+      formData.append('removedImages[]', id);
+    }
+
+    if (this.isEdit && this.userId) {
+      this.service.updateUser(this.userId, formData).subscribe({
+        next: () => {
+          this.toastr.success('User updated!');
+          this.router.navigate(['/']);
+        },
+        error: (err) => {
+          this.toastr.error('Failed to update user');
+          console.error(err);
+        }
+      });
+    } else {
+      this.service.createUser(formData).subscribe({
+        next: () => {
+          this.toastr.success('User created!');
+          this.router.navigate(['/']);
+        },
+        error: (err) => {
+          this.toastr.error('Failed to create user');
+          console.error(err);
         }
       });
     }
   }
 
-
-  onFileChange(event: any) {
-    const files = event.target.files;
-    for (let file of files) {
-      this.images.push(file);
-
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.previews.push(e.target.result);
-      };
-      reader.readAsDataURL(file);
-
-      const extension = file.name.split('.').pop() || '';
-      const sizeKB = (file.size / 1024).toFixed(2);
-      this.fileMetas.push({
-        name: file.name,
-        type: file.type,
-        size: `${sizeKB} KB`,
-        extension,
-        isExisting: false,
-      });
-    }
-  }
-
-  removeImage(index: number) {
-    if (index < this.existingImages.length) {
-      const removed = this.existingImages.splice(index, 1)[0];
-      this.removedImages.push(removed);
-    } else {
-      const newImageIndex = index - this.existingImages.length;
-      this.images.splice(newImageIndex, 1);
-    }
-    this.previews.splice(index, 1);
-    this.fileMetas.splice(index, 1);
-  }
-
-  async getFileMetaFromUrl(url: string): Promise<{ size: string; type: string }> {
-    try {
-      const res = await fetch(url, { method: 'HEAD' });
-      const size = Number(res.headers.get('Content-Length'));
-      const type = res.headers.get('Content-Type') || 'unknown';
-      const sizeFormatted = size
-        ? size / 1024 > 1024
-          ? (size / 1024 / 1024).toFixed(2) + ' MB'
-          : (size / 1024).toFixed(2) + ' KB'
-        : 'Unknown';
-
-      return { size: sizeFormatted, type };
-    } catch {
-      return { size: 'Unknown', type: 'Unknown' };
-    }
-  }
-
-  onSubmit() {
-    const formData = new FormData();
-    formData.append('name', this.userForm.value.name);
-    formData.append('email', this.userForm.value.email);
-
-    this.images.forEach((img) => {
-      formData.append('photos', img);
-    });
-
-    if (this.editing) {
-      this.removedImages.forEach((img) =>
-        formData.append('removedImages[]', img),
-      );
-
-      this.service.updateUser(this.userId, formData).subscribe(() => {
-        this.toastr.success('User updated successfully');
-        this.router.navigate(['/']);
-      });
-    } else {
-      this.service.createUser(formData).subscribe(() => {
-        this.toastr.success('User created successfully');
-        this.router.navigate(['/']);
-      });
-    }
+  getFileExtension(fileName: string): string {
+    return fileName.split('.').pop()?.toLowerCase() || '';
   }
 }

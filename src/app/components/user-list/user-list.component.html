@@ -21,25 +21,25 @@
                   <!-- Image Preview -->
                   <img
                     *ngSwitchCase="'jpg'"
-                    [src]="service.baseUrl + '/' + photo.url"
+                    [src]="service.baseUrl + '/users/preview/' + photo.id"
                     class="img-fluid rounded"
                     style="height: 100px; object-fit: cover;"
                   />
                   <img
                     *ngSwitchCase="'jpeg'"
-                    [src]="service.baseUrl + '/' + photo.url"
+                    [src]="service.baseUrl + '/users/preview/' + photo.id"
                     class="img-fluid rounded"
                     style="height: 100px; object-fit: cover;"
                   />
                   <img
                     *ngSwitchCase="'png'"
-                    [src]="service.baseUrl + '/' + photo.url"
+                    [src]="service.baseUrl + '/users/preview/' + photo.id"
                     class="img-fluid rounded"
                     style="height: 100px; object-fit: cover;"
                   />
                   <img
                     *ngSwitchCase="'webp'"
-                    [src]="service.baseUrl + '/' + photo.url"
+                    [src]="service.baseUrl + '/users/preview/' + photo.id"
                     class="img-fluid rounded"
                     style="height: 100px; object-fit: cover;"
                   />
@@ -76,7 +76,7 @@
               <!-- Download Button -->
               <button
                 class="btn btn-sm btn-outline-primary mt-1"
-                (click)="downloadFile(photo.url, photo.originalName); $event.stopPropagation()"
+                (click)="downloadFile(photo.id, photo.originalName); $event.stopPropagation()"
               >
                 Download
               </button>
@@ -104,28 +104,28 @@
       (click)="$event.stopPropagation()"
     >
       <div class="preview-content">
-        <button class="close-btn" (click)="closePreview()">&times;</button>
+        <button class="close-btn" (click)="closePreview()">×</button>
         
         <ng-container [ngSwitch]="getFileExtension(currentPreview?.originalName)">
           <!-- Image Preview -->
           <img
             *ngSwitchCase="'jpg'"
-            [src]="service.baseUrl + '/' + currentPreview?.url"
+            [src]="service.baseUrl + '/users/preview/' + currentPreview?.id"
             class="img-fluid"
           />
           <img
             *ngSwitchCase="'jpeg'"
-            [src]="service.baseUrl + '/' + currentPreview?.url"
+            [src]="service.baseUrl + '/users/preview/' + currentPreview?.id"
             class="img-fluid"
           />
           <img
             *ngSwitchCase="'png'"
-            [src]="service.baseUrl + '/' + currentPreview?.url"
+            [src]="service.baseUrl + '/users/preview/' + currentPreview?.id"
             class="img-fluid"
           />
           <img
             *ngSwitchCase="'webp'"
-            [src]="service.baseUrl + '/' + currentPreview?.url"
+            [src]="service.baseUrl + '/users/preview/' + currentPreview?.id"
             class="img-fluid"
           />
 

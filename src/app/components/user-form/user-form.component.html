@@ -1,46 +1,196 @@
 <div class="container mt-4">
-  <h4>{{ editing ? 'Edit' : 'Add New' }} User</h4>
+  <h4>{{ isEdit ? 'Edit User' : 'Create User' }}</h4>
+
   <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-    <div class="mb-3">
-      <label>Name</label>
-      <input formControlName="name" class="form-control" required />
-    </div>
-    <div class="mb-3">
-      <label>Email</label>
-      <input formControlName="email" class="form-control" required />
-    </div>
-
-    <div class="mb-3">
-      <label>Photos</label>
-      <input type="file" (change)="onFileChange($event)" multiple class="form-control" />
-    </div>
-
     <div class="row">
-      <div class="col-md-3" *ngFor="let preview of previews; let i = index">
-        <div class="card mb-3">
-          <img
-            [src]="preview"
-            class="card-img-top"
-            style="height: 150px; object-fit: cover"
-            *ngIf="preview"
-          />
-          <div class="card-body">
-            <p class="mb-1" *ngIf="fileMetas[i]"><strong>Name:</strong> {{ fileMetas[i].name }}</p>
-            <p class="mb-1" *ngIf="fileMetas[i]"><strong>Type:</strong> {{ fileMetas[i].type }}</p>
-            <p class="mb-1" *ngIf="fileMetas[i]"><strong>Size:</strong> {{ fileMetas[i].size }}</p>
-            <p class="mb-1" *ngIf="fileMetas[i]"><strong>Extension:</strong> {{ fileMetas[i].extension }}</p>
-            <div class="text-center mt-2">
-              <button type="button" class="btn btn-danger btn-sm" (click)="removeImage(i)">
-                Remove
-              </button>
+      <!-- Name -->
+      <div class="col-md-6 mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="name"
+          formControlName="name"
+          [class.is-invalid]="userForm.get('name')?.touched && userForm.get('name')?.invalid"
+        />
+        <div *ngIf="userForm.get('name')?.touched && userForm.get('name')?.invalid" class="invalid-feedback">
+          Name is required
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="col-md-6 mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          formControlName="email"
+          [class.is-invalid]="userForm.get('email')?.touched && userForm.get('email')?.invalid"
+        />
+        <div *ngIf="userForm.get('email')?.touched && userForm.get('email')?.invalid" class="invalid-feedback">
+          Valid email is required
+        </div>
+      </div>
+
+      <!-- File Input -->
+      <div class="col-md-12 mb-3">
+        <label for="photos" class="form-label">Upload Photos</label>
+        <input
+          type="file"
+          class="form-control"
+          id="photos"
+          multiple
+          accept="image/*,.pdf"
+          formControlName="photos"
+          (change)="onFileChange($event)"
+        />
+      </div>
+    </div>
+
+    <!-- Existing Files -->
+    <div class="row mb-3" *ngIf="existingFiles.length > 0">
+      <h6>Existing Files</h6>
+      <div class="d-flex flex-wrap gap-3">
+        <div
+          *ngFor="let file of existingFiles; let i = index"
+          class="border rounded p-2 text-center"
+          style="width: 170px; flex-shrink: 0;"
+        >
+          <ng-container [ngSwitch]="getFileExtension(file.originalName)">
+            <!-- Image Preview -->
+            <img
+              *ngSwitchCase="'jpg'"
+              [src]="file.safeUrl"
+              class="img-fluid rounded"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            />
+            <img
+              *ngSwitchCase="'jpeg'"
+              [src]="file.safeUrl"
+              class="img-fluid rounded"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            />
+            <img
+              *ngSwitchCase="'png'"
+              [src]="file.safeUrl"
+              class="img-fluid rounded"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            />
+            <img
+              *ngSwitchCase="'webp'"
+              [src]="file.safeUrl"
+              class="img-fluid rounded"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            />
+
+            <!-- PDF Preview -->
+            <iframe
+              *ngSwitchCase="'pdf'"
+              [attr.src]="file.safeUrl"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            ></iframe>
+
+            <!-- No Preview -->
+            <div
+              *ngSwitchDefault
+              class="d-flex align-items-center justify-content-center bg-light"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            >
+              <small class="text-muted">No preview</small>
             </div>
-          </div>
+          </ng-container>
+
+          <small class="d-block mt-2 text-break fw-semibold" style="font-size: 0.75rem;">
+            {{ file.originalName }}
+          </small>
+
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-danger mt-1"
+            (click)="removeExistingImage(i)"
+          >
+            Remove
+          </button>
         </div>
       </div>
     </div>
 
-    <button class="btn btn-primary mt-2 mb-5" type="submit">
-      {{ editing ? 'Update' : 'Submit' }}
-    </button>
+    <!-- New Files -->
+    <div class="row mb-3" *ngIf="newFiles.length > 0">
+      <h6>New Files</h6>
+      <div class="d-flex flex-wrap gap-3">
+        <div
+          *ngFor="let file of newFiles; let i = index"
+          class="border rounded p-2 text-center"
+          style="width: 170px; flex-shrink: 0;"
+        >
+          <ng-container [ngSwitch]="getFileExtension(file.name)">
+            <!-- Image Preview -->
+            <img
+              *ngSwitchCase="'jpg'"
+              [src]="file.safeUrl"
+              class="img-fluid rounded"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            />
+            <img
+              *ngSwitchCase="'jpeg'"
+              [src]="file.safeUrl"
+              class="img-fluid rounded"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            />
+            <img
+              *ngSwitchCase="'png'"
+              [src]="file.safeUrl"
+              class="img-fluid rounded"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            />
+            <img
+              *ngSwitchCase="'webp'"
+              [src]="file.safeUrl"
+              class="img-fluid rounded"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            />
+
+            <!-- PDF Preview -->
+            <iframe
+              *ngSwitchCase="'pdf'"
+              [attr.src]="file.safeUrl"
+              style="height: 200px; border: none; width: 150px;"
+              allow="fullscreen"
+            ></iframe>
+
+            <!-- No Preview -->
+            <div
+              *ngSwitchDefault
+              class="d-flex align-items-center justify-content-center bg-light"
+              style="height: 200px; width: 150px; object-fit: cover;"
+            >
+              <small class="text-muted">No preview</small>
+            </div>
+          </ng-container>
+
+          <small class="d-block mt-2 text-break fw-semibold" style="font-size: 0.75rem;">
+            {{ file.name }}
+          </small>
+
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-danger mt-1"
+            (click)="removeNewImage(i)"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="col-md-12 mb-5">
+      <button type="submit" class="btn btn-primary">
+        {{ isEdit ? 'Update' : 'Create' }}
+      </button>
+      <a [routerLink]="['/']" class="btn btn-secondary ms-2">Cancel</a>
+    </div>
   </form>
 </div>

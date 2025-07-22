@@ -31,11 +31,13 @@ export class UserListComponent implements OnInit {
 
       for (const user of this.users) {
         for (const photo of user.photos) {
-          const fileUrl = `${this.service.baseUrl}/${photo.url}`;
+          const fileUrl = `${this.service.baseUrl}/users/download/${photo.id}`;
           photo.fileSize = await this.getFileSize(fileUrl);
 
+          // PDF ফাইলের জন্য থাম্বনেইল প্রিভিউ
           if (this.getFileExtension(photo.originalName) === 'pdf') {
-            photo.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+            const previewUrl = `${this.service.baseUrl}/users/preview/${photo.id}`;
+            photo.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(previewUrl);
           }
         }
       }
@@ -49,7 +51,7 @@ export class UserListComponent implements OnInit {
 
     const ext = this.getFileExtension(photo.originalName);
     if (ext === 'pdf') {
-      const fileUrl = `${this.service.baseUrl}/${photo.url}#zoom=100`; // 👉 zoom=100
+      const fileUrl = `${this.service.baseUrl}/users/preview/${photo.id}#zoom=100`;
       this.currentPreview.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
     }
 
@@ -60,7 +62,6 @@ export class UserListComponent implements OnInit {
       this.isAnimating = false;
     }, 800);
   }
-
 
   closePreview() {
     this.isAnimating = true;
@@ -96,8 +97,8 @@ export class UserListComponent implements OnInit {
       .catch(() => 'Unknown size');
   }
 
-  downloadFile(storedName: string, originalName: string) {
-    const fileUrl = `${this.service.baseUrl}/${storedName}`;
+  downloadFile(photoId: string, originalName: string) {
+    const fileUrl = `${this.service.baseUrl}/users/download/${photoId}`;
     fetch(fileUrl)
       .then((response) => response.blob())
       .then((blob) => {
