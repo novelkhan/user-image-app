@@ -35,13 +35,12 @@
 
       <!-- File Input -->
       <div class="col-md-12 mb-3">
-        <label for="photos" class="form-label">Upload Photos</label>
+        <label for="photos" class="form-label">Upload Files</label>
         <input
           type="file"
           class="form-control"
           id="photos"
           multiple
-          accept="image/*,.pdf"
           formControlName="photos"
           (change)="onFileChange($event)"
         />
@@ -55,57 +54,61 @@
         <div
           *ngFor="let file of existingFiles; let i = index"
           class="border rounded p-2 text-center"
-          style="width: 170px; flex-shrink: 0;"
+          style="width: 130px; flex-shrink: 0;"
         >
           <div (click)="openPreview($event, file)" style="cursor: pointer;">
             <ng-container [ngSwitch]="getFileExtension(file.originalName)">
               <!-- Image Preview -->
               <img
                 *ngSwitchCase="'jpg'"
-                [src]="file.safeUrl"
+                [src]="file.safeUrl || (service.baseUrl + '/users/preview/' + file.id)"
                 class="img-fluid rounded"
-                style="width: 150px; height: 150px; object-fit: cover;"
+                style="height: 100px; object-fit: cover;"
               />
               <img
                 *ngSwitchCase="'jpeg'"
-                [src]="file.safeUrl"
+                [src]="file.safeUrl || (service.baseUrl + '/users/preview/' + file.id)"
                 class="img-fluid rounded"
-                style="width: 150px; height: 150px; object-fit: cover;"
+                style="height: 100px; object-fit: cover;"
               />
               <img
                 *ngSwitchCase="'png'"
-                [src]="file.safeUrl"
+                [src]="file.safeUrl || (service.baseUrl + '/users/preview/' + file.id)"
                 class="img-fluid rounded"
-                style="width: 150px; height: 150px; object-fit: cover;"
+                style="height: 100px; object-fit: cover;"
               />
               <img
                 *ngSwitchCase="'webp'"
-                [src]="file.safeUrl"
+                [src]="file.safeUrl || (service.baseUrl + '/users/preview/' + file.id)"
                 class="img-fluid rounded"
-                style="width: 150px; height: 150px; object-fit: cover;"
+                style="height: 100px; object-fit: cover;"
               />
 
               <!-- PDF Preview -->
               <iframe
                 *ngSwitchCase="'pdf'"
                 [attr.src]="file.safeUrl"
-                style="width: 150px; height: 150px; border: none; pointer-events: none;"
+                style="width: 100%; height: 100px; border: none; pointer-events: none;"
                 allow="fullscreen"
               ></iframe>
 
-              <!-- No Preview -->
+              <!-- Other Files -->
               <div
                 *ngSwitchDefault
                 class="d-flex align-items-center justify-content-center bg-light"
-                style="width: 150px; height: 150px;"
+                style="width: 100%; height: 100px;"
               >
-                <small class="text-muted">No preview</small>
+                <small class="text-muted">{{ getFileExtension(file.originalName) }} File</small>
               </div>
             </ng-container>
           </div>
 
           <small class="d-block mt-2 text-break fw-semibold" style="font-size: 0.75rem;">
             {{ file.originalName }}
+          </small>
+
+          <small class="text-muted" style="font-size: 0.7rem;">
+            {{ file.fileSize }}
           </small>
 
           <button
@@ -126,7 +129,7 @@
         <div
           *ngFor="let file of newFiles; let i = index"
           class="border rounded p-2 text-center"
-          style="width: 170px; flex-shrink: 0;"
+          style="width: 130px; flex-shrink: 0;"
         >
           <div (click)="openPreview($event, file)" style="cursor: pointer;">
             <ng-container [ngSwitch]="getFileExtension(file.name)">
@@ -135,48 +138,52 @@
                 *ngSwitchCase="'jpg'"
                 [src]="file.safeUrl"
                 class="img-fluid rounded"
-                style="width: 150px; height: 150px; object-fit: cover;"
+                style="height: 100px; object-fit: cover;"
               />
               <img
                 *ngSwitchCase="'jpeg'"
                 [src]="file.safeUrl"
                 class="img-fluid rounded"
-                style="width: 150px; height: 150px; object-fit: cover;"
+                style="height: 100px; object-fit: cover;"
               />
               <img
                 *ngSwitchCase="'png'"
                 [src]="file.safeUrl"
                 class="img-fluid rounded"
-                style="width: 150px; height: 150px; object-fit: cover;"
+                style="height: 100px; object-fit: cover;"
               />
               <img
                 *ngSwitchCase="'webp'"
                 [src]="file.safeUrl"
                 class="img-fluid rounded"
-                style="width: 150px; height: 150px; object-fit: cover;"
+                style="height: 100px; object-fit: cover;"
               />
 
               <!-- PDF Preview -->
               <iframe
                 *ngSwitchCase="'pdf'"
                 [attr.src]="file.safeUrl"
-                style="width: 150px; height: 150px; border: none; pointer-events: none;"
+                style="width: 100%; height: 100px; border: none; pointer-events: none;"
                 allow="fullscreen"
               ></iframe>
 
-              <!-- No Preview -->
+              <!-- Other Files -->
               <div
                 *ngSwitchDefault
                 class="d-flex align-items-center justify-content-center bg-light"
-                style="width: 150px; height: 150px;"
+                style="width: 100%; height: 100px;"
               >
-                <small class="text-muted">No preview</small>
+                <small class="text-muted">{{ getFileExtension(file.name) }} File</small>
               </div>
             </ng-container>
           </div>
 
           <small class="d-block mt-2 text-break fw-semibold" style="font-size: 0.75rem;">
             {{ file.name }}
+          </small>
+
+          <small class="text-muted" style="font-size: 0.7rem;">
+            {{ file.fileSize }}
           </small>
 
           <button
@@ -208,22 +215,22 @@
             <!-- Image Preview -->
             <img
               *ngSwitchCase="'jpg'"
-              [src]="currentPreview?.safeUrl"
+              [src]="currentPreview?.safeUrl || (service.baseUrl + '/users/preview/' + currentPreview?.id)"
               class="img-fluid"
             />
             <img
               *ngSwitchCase="'jpeg'"
-              [src]="currentPreview?.safeUrl"
+              [src]="currentPreview?.safeUrl || (service.baseUrl + '/users/preview/' + currentPreview?.id)"
               class="img-fluid"
             />
             <img
               *ngSwitchCase="'png'"
-              [src]="currentPreview?.safeUrl"
+              [src]="currentPreview?.safeUrl || (service.baseUrl + '/users/preview/' + currentPreview?.id)"
               class="img-fluid"
             />
             <img
               *ngSwitchCase="'webp'"
-              [src]="currentPreview?.safeUrl"
+              [src]="currentPreview?.safeUrl || (service.baseUrl + '/users/preview/' + currentPreview?.id)"
               class="img-fluid"
             />
 
@@ -235,12 +242,14 @@
               allow="fullscreen"
             ></iframe>
 
-            <!-- No Preview -->
+            <!-- Other Files -->
             <div
               *ngSwitchDefault
               class="d-flex align-items-center justify-content-center bg-light h-100"
             >
-              <h5 class="text-muted">No preview available</h5>
+              <h5 class="text-muted">
+                No preview available for {{ getFileExtension(currentPreview?.name || currentPreview?.originalName) }} files
+              </h5>
             </div>
           </ng-container>
         </div>

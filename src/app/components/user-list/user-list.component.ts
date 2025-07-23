@@ -34,10 +34,15 @@ export class UserListComponent implements OnInit {
           const fileUrl = `${this.service.baseUrl}/users/download/${photo.id}`;
           photo.fileSize = await this.getFileSize(fileUrl);
 
-          // PDF ফাইলের জন্য থাম্বনেইল প্রিভিউ
-          if (this.getFileExtension(photo.originalName) === 'pdf') {
+          // ফাইলের প্রিভিউ URL সেট করা
+          const ext = this.getFileExtension(photo.originalName).toLowerCase();
+          if (['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext)) {
+            // const previewUrl = `${this.service.baseUrl}/users/preview/${photo.id}${ext === 'pdf' ? '#zoom=50' : ''}`;
             const previewUrl = `${this.service.baseUrl}/users/preview/${photo.id}`;
             photo.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(previewUrl);
+          } else {
+            // অন্য ফাইলের জন্য খালি safeUrl
+            photo.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl('');
           }
         }
       }
@@ -49,10 +54,13 @@ export class UserListComponent implements OnInit {
     this.clickedElementPosition = clickedElement.getBoundingClientRect();
     this.currentPreview = { ...photo }; // shallow copy
 
-    const ext = this.getFileExtension(photo.originalName);
-    if (ext === 'pdf') {
-      const fileUrl = `${this.service.baseUrl}/users/preview/${photo.id}#zoom=100`;
+    const ext = this.getFileExtension(photo.originalName).toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext)) {
+      const fileUrl = `${this.service.baseUrl}/users/preview/${photo.id}${ext === 'pdf' ? '#zoom=100' : ''}`;
       this.currentPreview.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+    } else {
+      // অন্য ফাইলের জন্য খালি safeUrl
+      this.currentPreview.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl('');
     }
 
     this.isAnimating = true;

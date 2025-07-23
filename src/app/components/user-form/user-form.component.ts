@@ -24,7 +24,7 @@ export class UserFormComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private service: UserService,
+    public service: UserService, // private থেকে public করা হলো
     private route: ActivatedRoute,
     private router: Router,
     private toastr: ToastrService,
@@ -47,16 +47,28 @@ export class UserFormComponent implements OnInit {
     });
   }
 
-  loadUser(id: number) {
-    this.service.getUserById(id).subscribe(user => {
+  async loadUser(id: number) {
+    this.service.getUserById(id).subscribe(async (user) => {
       this.userForm.patchValue({
         name: user.name,
         email: user.email
       });
-      this.existingFiles = user.photos.map((photo: any) => ({
-        ...photo,
-        safeUrl: this.getPreviewUrl(photo)
-      }));
+      this.existingFiles = [];
+      for (const photo of user.photos) {
+        const fileUrl = `${this.service.baseUrl}/users/download/${photo.id}`;
+        const ext = this.getFileExtension(photo.originalName).toLowerCase();
+        const file = {
+          ...photo,
+          fileSize: await this.getFileSize(fileUrl),
+          safeUrl: ['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext)
+            ? this.sanitizer.bypassSecurityTrustResourceUrl(
+                // `${this.service.baseUrl}/users/preview/${photo.id}${ext === 'pdf' ? '#zoom=50' : ''}`
+                `${this.service.baseUrl}/users/preview/${photo.id}`
+              )
+            : this.sanitizer.bypassSecurityTrustResourceUrl('')
+        };
+        this.existingFiles.push(file);
+      }
     });
   }
 
@@ -64,30 +76,22 @@ export class UserFormComponent implements OnInit {
     const files = Array.from(event.target.files) as File[];
     const newFilesToAdd = files.map(file => ({
       file,
-      name: file.name,
+      name: file.name, // file.originalName এর পরিবর্তে file.name
+      fileSize: this.formatFileSize(file.size),
       safeUrl: this.getSafeUrl(file)
     }));
     this.newFiles = [...this.newFiles, ...newFilesToAdd];
   }
 
   getSafeUrl(file: File): SafeResourceUrl {
-    const ext = this.getFileExtension(file.name);
-    if (ext === 'pdf') {
+    const ext = this.getFileExtension(file.name).toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+      return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
+    } else if (ext === 'pdf') {
+      // return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file) + '#zoom=50');
       return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
     }
-    return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
-  }
-
-  getPreviewUrl(photo: any): SafeResourceUrl {
-    const ext = this.getFileExtension(photo.originalName);
-    if (ext === 'pdf') {
-      return this.sanitizer.bypassSecurityTrustResourceUrl(
-        `${this.service.baseUrl}/users/preview/${photo.id}`
-      );
-    }
-    return this.sanitizer.bypassSecurityTrustResourceUrl(
-      `${this.service.baseUrl}/users/preview/${photo.id}`
-    );
+    return this.sanitizer.bypassSecurityTrustResourceUrl('');
   }
 
   openPreview(event: MouseEvent, file: any) {
@@ -95,12 +99,19 @@ export class UserFormComponent implements OnInit {
     this.clickedElementPosition = clickedElement.getBoundingClientRect();
     this.currentPreview = { ...file }; // shallow copy
 
-    const ext = this.getFileExtension(file.name || file.originalName);
-    if (ext === 'pdf') {
+    const ext = this.getFileExtension(file.name || file.originalName).toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+      const fileUrl = file.file
+        ? URL.createObjectURL(file.file)
+        : `${this.service.baseUrl}/users/preview/${file.id}`;
+      this.currentPreview.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+    } else if (ext === 'pdf') {
       const fileUrl = file.file
         ? URL.createObjectURL(file.file) + '#zoom=100'
         : `${this.service.baseUrl}/users/preview/${file.id}#zoom=100`;
       this.currentPreview.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+    } else {
+      this.currentPreview.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl('');
     }
 
     this.isAnimating = true;
@@ -118,7 +129,7 @@ export class UserFormComponent implements OnInit {
       this.currentPreview = null;
       this.clickedElementPosition = null;
       this.isAnimating = false;
-    }, 800); // অ্যানিমেশন শেষ হওয়া পর্যন্ত অপেক্ষা
+    }, 800);
   }
 
   removeExistingImage(index: number) {
@@ -176,5 +187,22 @@ export class UserFormComponent implements OnInit {
 
   getFileExtension(fileName: string): string {
     return fileName.split('.').pop()?.toLowerCase() || '';
+  }
+
+  getFileSize(fileUrl: string): Promise<string> {
+    return fetch(fileUrl, { method: 'HEAD' })
+      .then((response) => {
+        const size = Number(response.headers.get('Content-Length'));
+        if (!size) return 'Unknown size';
+        const kb = size / 1024;
+        return kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : kb.toFixed(2) + ' KB';
+      })
+      .catch(() => 'Unknown size');
+  }
+
+  formatFileSize(size: number): string {
+    if (!size) return 'Unknown size';
+    const kb = size / 1024;
+    return kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : kb.toFixed(2) + ' KB';
   }
 }
