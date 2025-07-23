@@ -73,7 +73,7 @@ export class UserFormComponent implements OnInit {
   getSafeUrl(file: File): SafeResourceUrl {
     const ext = this.getFileExtension(file.name);
     if (ext === 'pdf') {
-      return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file) + '#zoom=50');
+      return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
     }
     return this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
   }
@@ -82,7 +82,7 @@ export class UserFormComponent implements OnInit {
     const ext = this.getFileExtension(photo.originalName);
     if (ext === 'pdf') {
       return this.sanitizer.bypassSecurityTrustResourceUrl(
-        `${this.service.baseUrl}/users/preview/${photo.id}#zoom=50`
+        `${this.service.baseUrl}/users/preview/${photo.id}`
       );
     }
     return this.sanitizer.bypassSecurityTrustResourceUrl(
@@ -91,10 +91,9 @@ export class UserFormComponent implements OnInit {
   }
 
   openPreview(event: MouseEvent, file: any) {
-    event.stopPropagation(); // ফর্ম সাবমিশন প্রতিরোধ করতে
     const clickedElement = event.currentTarget as HTMLElement;
     this.clickedElementPosition = clickedElement.getBoundingClientRect();
-    this.currentPreview = { ...file };
+    this.currentPreview = { ...file }; // shallow copy
 
     const ext = this.getFileExtension(file.name || file.originalName);
     if (ext === 'pdf') {
@@ -112,15 +111,14 @@ export class UserFormComponent implements OnInit {
     }, 800);
   }
 
-  closePreview(event?: MouseEvent) {
-    if (event) event.stopPropagation(); // ফর্ম সাবমিশন প্রতিরোধ করতে
+  closePreview() {
     this.isAnimating = true;
     setTimeout(() => {
       this.showPreviewModal = false;
       this.currentPreview = null;
       this.clickedElementPosition = null;
       this.isAnimating = false;
-    }, 800);
+    }, 800); // অ্যানিমেশন শেষ হওয়া পর্যন্ত অপেক্ষা
   }
 
   removeExistingImage(index: number) {

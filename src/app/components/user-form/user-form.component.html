@@ -89,7 +89,7 @@
               <iframe
                 *ngSwitchCase="'pdf'"
                 [attr.src]="file.safeUrl"
-                style="width: 150px; height: 150px; border: none;"
+                style="width: 150px; height: 150px; border: none; pointer-events: none;"
                 allow="fullscreen"
               ></iframe>
 
@@ -111,7 +111,7 @@
           <button
             type="button"
             class="btn btn-sm btn-outline-danger mt-1"
-            (click)="removeExistingImage(i); $event.stopPropagation()"
+            (click)="removeExistingImage(i)"
           >
             Remove
           </button>
@@ -160,7 +160,7 @@
               <iframe
                 *ngSwitchCase="'pdf'"
                 [attr.src]="file.safeUrl"
-                style="width: 150px; height: 150px; border: none;"
+                style="width: 150px; height: 150px; border: none; pointer-events: none;"
                 allow="fullscreen"
               ></iframe>
 
@@ -182,7 +182,7 @@
           <button
             type="button"
             class="btn btn-sm btn-outline-danger mt-1"
-            (click)="removeNewImage(i); $event.stopPropagation()"
+            (click)="removeNewImage(i)"
           >
             Remove
           </button>
@@ -191,7 +191,7 @@
     </div>
 
     <!-- Floating Preview Modal -->
-    <div *ngIf="showPreviewModal" class="preview-overlay" (click)="closePreview($event)">
+    <div *ngIf="showPreviewModal" class="preview-overlay" (click)="closePreview()">
       <div 
         class="preview-container"
         [class.animate]="!isAnimating"
@@ -202,7 +202,7 @@
         (click)="$event.stopPropagation()"
       >
         <div class="preview-content">
-          <button class="close-btn" (click)="closePreview($event)">×</button>
+          <button type="button" class="close-btn" (click)="closePreview()">×</button>
           
           <ng-container [ngSwitch]="getFileExtension(currentPreview?.name || currentPreview?.originalName)">
             <!-- Image Preview -->
@@ -248,7 +248,7 @@
     </div>
 
     <!-- Submit Button -->
-    <div class="col-md-12">
+    <div class="col-md-12 mb-5">
       <button type="submit" class="btn btn-primary">
         {{ isEdit ? 'Update' : 'Create' }}
       </button>

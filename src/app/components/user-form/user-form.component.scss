@@ -18,9 +18,8 @@
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%);
-    width: 80vw !important;
-    max-width: 800px !important;
-    height: 80vh !important;
+    width: calc(100vw - 120px) !important; /* চারপাশে 60px মার্জিন */
+    height: calc(100vh - 120px) !important; /* চারপাশে 60px মার্জিন */
   }
 }
 
